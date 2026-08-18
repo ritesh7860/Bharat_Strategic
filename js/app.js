@@ -28,13 +28,27 @@ const solutions = [
 ];
 
 const products = [
-  'Laptops', 'Desktops', 'Servers', 'Networking Devices', 'Printers',
-  'Storage Devices', 'UPS Systems', 'CCTV Cameras', 'Accessories', 'IT Peripherals'
+  { name: 'Laptops', img: 'assets/images/laptop.jpg' },
+  { name: 'Desktops', img: 'assets/images/desktop.jpg' },
+  { name: 'Servers', img: 'assets/images/server.jpg' },
+  { name: 'Networking', img: 'assets/images/network.jpg' },
+  { name: 'Printers', img: 'assets/images/printer.jpg' },
+  { name: 'Storage', img: 'assets/images/storage.jpg' },
+  { name: 'UPS Systems', img: 'assets/images/ups.jpg' },
+  { name: 'CCTV', img: 'assets/images/cctv.jpg' },
+  { name: 'Accessories', img: 'assets/images/accessories.jpg' },
+  { name: 'Peripherals', img: 'assets/images/peripherals.jpg' },
 ];
 
 const industries = [
-  'Healthcare', 'Education', 'Manufacturing', 'Retail',
-  'Banking & Finance', 'Government', 'Corporate Offices', 'Hospitality'
+  { name: 'Healthcare', img: 'assets/images/healthcare.jpg' },
+  { name: 'Education', img: 'assets/images/education.jpg' },
+  { name: 'Manufacturing', img: 'assets/images/manufacturing.jpg' },
+  { name: 'Retail', img: 'assets/images/retail.jpg' },
+  { name: 'Banking & Finance', img: 'assets/images/banking.jpg' },
+  { name: 'Government', img: 'assets/images/government.jpg' },
+  { name: 'Corporate Offices', img: 'assets/images/corporate.jpg' },
+  { name: 'Hospitality', img: 'assets/images/hospitality.jpg' },
 ];
 
 const processSteps = [
@@ -122,11 +136,11 @@ function renderProducts() {
   const el = document.getElementById('products-scroll');
   if (!el) return;
   el.innerHTML = products.map(p => `
-    <div class="product-card">
-      <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-electric-500/10 flex items-center justify-center text-electric-400">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+    <div class="product-card product-card-img">
+      <div class="product-img-wrap">
+        <img src="${p.img}" alt="${p.name}" loading="lazy" />
       </div>
-      <h4 class="text-white font-medium text-sm">${p}</h4>
+      <h4 class="text-white font-medium text-sm mt-3">${p.name}</h4>
     </div>
   `).join('');
 }
@@ -135,11 +149,12 @@ function renderIndustries() {
   const grid = document.getElementById('industries-grid');
   if (!grid) return;
   grid.innerHTML = industries.map(i => `
-    <div class="industry-card reveal">
-      <div class="text-electric-400 mb-2 flex justify-center">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+    <div class="industry-card industry-card-img reveal group">
+      <div class="industry-img-wrap">
+        <img src="${i.img}" alt="${i.name}" loading="lazy" />
+        <div class="industry-overlay"></div>
       </div>
-      <h4 class="text-white font-medium text-sm">${i}</h4>
+      <h4 class="text-white font-medium text-sm relative z-10">${i.name}</h4>
     </div>
   `).join('');
 }
