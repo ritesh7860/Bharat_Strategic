@@ -224,7 +224,7 @@ function renderFAQ() {
 }
 
 // ========== LOADER ==========
-function runGlobalLoader() {
+function runGlobalLoader(onComplete) {
   const loader = document.getElementById('global-loader');
   const progress = document.getElementById('loader-progress');
   if (!loader) return;
@@ -243,6 +243,7 @@ function runGlobalLoader() {
         setTimeout(() => {
           loader.style.display = 'none';
           document.body.style.overflow = '';
+          onComplete?.();
         }, 650);
       }, 350);
     } else {
@@ -306,80 +307,72 @@ function setupNav() {
   });
 }
 
+function setupTheme() {
+  const root = document.documentElement;
+  const toggle = document.getElementById('theme-toggle');
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  const applyTheme = (theme, animate = false) => {
+    root.dataset.theme = theme;
+    try { localStorage.setItem('bss-theme', theme); } catch (_) { /* storage can be unavailable */ }
+    toggle?.setAttribute('aria-pressed', String(theme === 'light'));
+    toggle?.setAttribute('aria-label', `Switch to ${theme === 'light' ? 'dark' : 'light'} mode`);
+    if (metaTheme) metaTheme.content = theme === 'light' ? '#f5f9fc' : '#0a1628';
+    if (animate && typeof gsap !== 'undefined' && !prefersReducedMotion()) {
+      gsap.fromTo('body', { opacity: .84 }, { opacity: 1, duration: .38, ease: 'power2.out', overwrite: true });
+    }
+    if (typeof ScrollTrigger !== 'undefined') requestAnimationFrame(() => ScrollTrigger.refresh());
+  };
+  applyTheme(root.dataset.theme === 'light' ? 'light' : 'dark');
+  toggle?.addEventListener('click', () => applyTheme(root.dataset.theme === 'light' ? 'dark' : 'light', true));
+}
+
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function setupReveal() {
-  const els = document.querySelectorAll('.reveal');
-  if (!els.length) return;
+let animationContext;
 
-  if (prefersReducedMotion() || typeof gsap === 'undefined') {
-    els.forEach(el => el.classList.add('visible'));
+function setupReveal() {
+  const revealed = document.querySelectorAll('.reveal');
+  if (animationContext) animationContext.revert();
+  if (prefersReducedMotion() || typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+    revealed.forEach(el => el.classList.add('visible'));
     return;
   }
 
   gsap.registerPlugin(ScrollTrigger);
+  animationContext = gsap.context(() => {
+    const heroItems = document.querySelectorAll('#home .reveal');
+    const heroVisual = document.querySelector('#home .hidden');
+    gsap.timeline({ defaults: { ease: 'power3.out' } })
+      .fromTo(heroItems, { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: .8, stagger: .14 })
+      .fromTo(heroVisual, { opacity: 0, scale: .9, x: 30 }, { opacity: 1, scale: 1, x: 0, duration: 1 }, .25);
 
-  // Content blocks: fade + slide up
-  els.forEach(el => {
-    gsap.fromTo(el,
-      { opacity: 0, y: 40 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.85,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: el,
-          start: 'top 90%',
-          once: true,
-        },
-        onComplete: () => el.classList.add('visible'),
-      }
-    );
-  });
+    gsap.to('#home > .absolute:nth-of-type(2)', { x: 70, y: -35, ease: 'none', scrollTrigger: { trigger: '#home', start: 'top top', end: 'bottom top', scrub: 1.2 } });
+    gsap.to('#home > .absolute:nth-of-type(3)', { x: -55, y: 40, ease: 'none', scrollTrigger: { trigger: '#home', start: 'top top', end: 'bottom top', scrub: 1.2 } });
 
-  // Soft section fade when scrolling between sections
-  document.querySelectorAll('main > section').forEach(section => {
-    gsap.fromTo(section,
-      { opacity: 0.65 },
-      {
-        opacity: 1,
-        duration: 0.55,
-        ease: 'power1.out',
-        scrollTrigger: {
-          trigger: section,
-          start: 'top 94%',
-          end: 'top 45%',
-          toggleActions: 'play none none reverse',
-        },
-      }
-    );
-  });
+    const animatedGridSelector = '#services-grid, #solutions-grid, #industries-grid, #process-grid, #testimonials-grid';
+    [...revealed].filter(el => !el.closest('#home') && !el.parentElement?.matches(animatedGridSelector)).forEach((el, index) => {
+      const from = index % 3 === 0 ? { opacity: 0, x: -34 } : index % 3 === 1 ? { opacity: 0, y: 34 } : { opacity: 0, x: 34 };
+      gsap.fromTo(el, from, { opacity: 1, x: 0, y: 0, duration: .8, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
+    });
 
-  // Stagger cards in grids
-  ['#services-grid', '#industries-grid', '#process-grid', '#testimonials-grid', '#solutions-grid'].forEach(sel => {
-    const grid = document.querySelector(sel);
-    if (!grid) return;
-    const cards = grid.children;
-    if (!cards.length) return;
-    gsap.fromTo(cards,
-      { opacity: 0, y: 32 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        stagger: 0.09,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: grid,
-          start: 'top 88%',
-          once: true,
-        },
-      }
-    );
+    [['#services-grid', .075, 28], ['#solutions-grid', .1, 22], ['#industries-grid', .08, 20], ['#process-grid', .12, 28], ['#testimonials-grid', .11, 25]].forEach(([selector, stagger, distance]) => {
+      const grid = document.querySelector(selector);
+      if (!grid?.children.length) return;
+      gsap.fromTo(grid.children, { opacity: 0, y: distance, scale: .97 }, { opacity: 1, y: 0, scale: 1, duration: .65, stagger, ease: 'power3.out', scrollTrigger: { trigger: grid, start: 'top 85%', once: true } });
+    });
+
+    const productCards = document.querySelectorAll('.product-card');
+    gsap.fromTo(productCards, { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: .6, stagger: .09, ease: 'power3.out', scrollTrigger: { trigger: '#products-scroll', start: 'top 86%', once: true } });
+    document.querySelectorAll('.about-visual, #home img').forEach(image => {
+      gsap.fromTo(image, { clipPath: 'inset(8% 8% 8% 8%)', scale: 1.08 }, { clipPath: 'inset(0% 0% 0% 0%)', scale: 1, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: image, start: 'top 85%', once: true } });
+    });
+    gsap.fromTo('#why-list li', { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: .45, stagger: .09, scrollTrigger: { trigger: '#why-list', start: 'top 85%', once: true } });
+    gsap.fromTo('#faq-list .faq-item', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: .45, stagger: .08, scrollTrigger: { trigger: '#faq-list', start: 'top 87%', once: true } });
+    gsap.fromTo('footer > div > div:first-child > div', { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: .55, stagger: .1, scrollTrigger: { trigger: 'footer', start: 'top 90%', once: true } });
   });
+  requestAnimationFrame(() => ScrollTrigger.refresh());
 }
 
 function setupMicroInteractions() {
@@ -438,6 +431,14 @@ function setupMicroInteractions() {
 
 function setupCounters() {
   const counters = document.querySelectorAll('.counter');
+  if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined' && !prefersReducedMotion()) {
+    counters.forEach(el => {
+      const value = { current: 0 };
+      const target = Number(el.dataset.target) || 0;
+      gsap.to(value, { current: target, duration: 1.5, ease: 'power2.out', snap: { current: 1 }, onUpdate: () => { el.textContent = value.current; }, scrollTrigger: { trigger: el, start: 'top 86%', once: true } });
+    });
+    return;
+  }
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
@@ -496,12 +497,13 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTestimonials();
   renderFAQ();
 
-  runGlobalLoader();
+  setupTheme();
   setupNav();
-  setupReveal();
-  setupCounters();
   setupBackToTop();
   setupForm();
-  // Micro-interactions after DOM cards exist
-  setTimeout(setupMicroInteractions, 100);
+  runGlobalLoader(() => {
+    setupReveal();
+    setupCounters();
+    setupMicroInteractions();
+  });
 });
