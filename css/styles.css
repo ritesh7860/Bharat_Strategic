@@ -118,9 +118,13 @@ html[data-theme="light"] .underline-input { color: var(--text-primary); border-b
 html[data-theme="light"] .underline-input::placeholder { color: var(--text-muted); }
 html[data-theme="light"] #navbar.scrolled { background: rgba(247,251,255,.9); border-color: var(--border-color); box-shadow: 0 4px 30px var(--shadow-color); }
 html[data-theme="light"] .nav-link { color: var(--text-secondary); }
-html[data-theme="light"] .nav-link:hover { color: var(--text-primary); background: #e9f4fb; }
+html[data-theme="light"] .nav-link:hover { color: white; background: rgba(2, 125, 183, 0.1); }
+html[data-theme="light"] #navbar.scrolled .nav-link:hover { color: var(--text-secondary); background: rgba(2, 125, 183, 0.1); }
+html[data-theme="light"] .nav-link.active { color: var(--accent); background: rgba(2, 125, 183, 0.14); }
+html[data-theme="light"] .nav-link.active::after { background: linear-gradient(90deg, var(--accent), var(--accent-hover)); }
 html[data-theme="light"] .mobile-link { color: var(--text-secondary); }
 html[data-theme="light"] .mobile-link:hover { color: var(--text-primary); background: var(--surface-secondary); }
+html[data-theme="light"] .mobile-link.active { color: var(--accent); background: var(--surface-secondary); }
 
 /* html[data-theme="light"] #home { background: #eaf5fb; }
 html[data-theme="light"] #home video { opacity: .22 !important; filter: saturate(.78) brightness(1.28); }
@@ -224,7 +228,49 @@ html[data-theme="light"] .theme-icon--sun { opacity: 1; transform: rotate(0) sca
 
 html {
   scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #0ea5e9 rgba(10, 22, 40, 0.5);
 }
+
+/* Global scrollbar (WebKit) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(10, 22, 40, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #0ea5e9;
+  background-image: linear-gradient(180deg, #38bdf8, #0284c7);
+  border-radius: 999px;
+  border: 2px solid rgba(10, 22, 40, 0.5);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-image: linear-gradient(180deg, #67d3ff, #0ea5e9);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(10, 22, 40, 0.5);
+}
+
+html[data-theme="light"] {
+  scrollbar-color: var(--accent) rgba(2, 125, 183, 0.1);
+}
+
+html[data-theme="light"] ::-webkit-scrollbar-track { background: rgba(2, 125, 183, 0.08); }
+html[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background-color: var(--accent);
+  background-image: linear-gradient(180deg, #4fb8e6, var(--accent));
+  border-color: rgba(2, 125, 183, 0.08);
+}
+html[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background-image: linear-gradient(180deg, var(--accent-hover), #056b9f);
+}
+html[data-theme="light"] ::-webkit-scrollbar-corner { background: rgba(2, 125, 183, 0.08); }
 
 /* Loader text animation */
 .loader-text,
@@ -260,15 +306,48 @@ html {
 
 /* Nav */
 .nav-link {
+  position: relative;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: #b6c3d4;
   border-radius: 0.5rem;
-  transition: color 0.2s;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.2rem;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+  transform: scaleX(0);
+  transform-origin: left;
+  /* opacity: 0; */
+  transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
 .nav-link:hover {
   color: #ffffff;
+  background: rgba(14, 165, 233, 0.1);
+}
+
+.nav-link:hover::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+.nav-link.active {
+  color: #7dd3fc;
+  background: rgba(14, 165, 233, 0.14);
+  font-weight: 600;
+}
+
+.nav-link.active::after {
+  transform: scaleX(1);
+  opacity: 1;
 }
 
 .mobile-link {
@@ -284,12 +363,27 @@ html {
   background: rgba(15, 33, 55, 0.8);
 }
 
+.mobile-link.active {
+  color: #7dd3fc;
+  background: rgba(14, 165, 233, 0.14);
+  font-weight: 600;
+}
+
+#navbar #logotext{
+  color: white;
+}
+
 #navbar.scrolled {
   background: rgba(10, 22, 40, 0.85);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(28, 54, 88, 0.6);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
+
+#navbar.scrolled #logotext{
+  color: rgba(10, 22, 40, 0.85);
+}
+
 
 /* Form */
 .form-input {

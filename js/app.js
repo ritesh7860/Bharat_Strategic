@@ -303,8 +303,55 @@ function setupNav() {
           window.scrollTo({ top, behavior: 'smooth' });
         }
       }, 200);
+      setActiveNavLink(href.replace('#', ''));
     });
   });
+
+  setupScrollSpy();
+}
+
+function setActiveNavLink(sectionId) {
+  document.querySelectorAll('.nav-link, .mobile-link').forEach(link => {
+    const isMatch = link.getAttribute('href') === `#${sectionId}`;
+    link.classList.toggle('active', isMatch);
+  });
+}
+
+function setupScrollSpy() {
+  const navLinks = document.querySelectorAll('.nav-link, .mobile-link');
+  if (!navLinks.length) return;
+
+  const sectionIds = Array.from(navLinks)
+    .map(link => link.getAttribute('href'))
+    .filter(href => href && href.startsWith('#') && href.length > 1)
+    .map(href => href.slice(1));
+
+  const sections = [...new Set(sectionIds)]
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+
+  if (!sections.length) return;
+
+  let currentActive = null;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        if (currentActive !== entry.target.id) {
+          currentActive = entry.target.id;
+          setActiveNavLink(currentActive);
+        }
+      }
+    });
+  }, {
+    root: null,
+    // Treat a section as "current" once it's within this band of the viewport,
+    // roughly accounting for the fixed navbar height.
+    rootMargin: '-45% 0px -50% 0px',
+    threshold: 0
+  });
+
+  sections.forEach(section => observer.observe(section));
 }
 
 function setupTheme() {
@@ -418,15 +465,8 @@ function setupMicroInteractions() {
     });
   });
 
-  // Nav links
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('mouseenter', () => {
-      gsap.to(link, { color: '#ffffff', duration: 0.2 });
-    });
-    link.addEventListener('mouseleave', () => {
-      gsap.to(link, { color: '#94a3b8', duration: 0.2 });
-    });
-  });
+  // Nav link hover/active colors are handled purely via CSS (.nav-link:hover / .nav-link.active)
+  // so no inline-style JS animation here — that was overriding the active-state color.
 }
 
 function setupCounters() {
